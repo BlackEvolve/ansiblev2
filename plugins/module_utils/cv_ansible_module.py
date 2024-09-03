@@ -68,6 +68,7 @@ class CVAnsibleModule(AnsibleModule):
             'webserver_password': dict(type=str, required=False, no_log=True),
             'auth_token': dict(type=str, required=False),
             'session_id': dict(type=str, required=False),
+            'session_path': dict(type=str, required=False),
             'force_https': dict(type=bool, required=False, default=False),
             'certificate_path': dict(type=str, required=False),
         }
@@ -90,7 +91,7 @@ class CVAnsibleModule(AnsibleModule):
 
             # Figure out the session ID
             session_id = SESSION_ID if not self.params.get('session_id') else self.params.get('session_id')
-            self.session_file_path = FILE_PATH.format(SESSION_ID=session_id)
+            self.session_file_path = FILE_PATH.format(SESSION_ID=session_id) if not self.params.get('session_path') else self.params.get('session_path')
 
             if creds and auth_token:
                 result = {"msg": "Both auth_token & commcell_username\\commcell_password provided."}
@@ -108,15 +109,6 @@ class CVAnsibleModule(AnsibleModule):
         except FileNotFoundError:
             result = {"msg": f"Failed to open session file {self.session_file_path}, it might not exist."}
             self.fail_json(**result)
-
-    def __del__(self):
-        """Called when the instance is about to be destroyed, saves the Commcell object to the session file."""
-
-        # Avoiding exceptions in __del__ as they will be logged to stderr.
-        if self.session_file_path:
-            with open(self.session_file_path, 'wb') as fh:
-                pickle.dump(self.commcell, fh)
-        os.chmod(self.session_file_path, stat.S_IRWXU)  # SET READ, WRITE & EXECUTE PERMISSIONS FOR OWNER
 
     def _login(self, *args, **kwargs):
         """Login to Commcell and return object of Commcell.

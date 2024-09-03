@@ -24,13 +24,14 @@ PreLogin: Represents pre login tasks, including deletion of old session files an
 
 PreLogin:
     clean_up()              --  Logs in to Commcell.
-    create_session_file()   --  Create a session file based on the UID of the user executing the script.
+    write_session_file()   --  Write into session file based on the UID of the user executing the script.
 
 """
 
 import os
 import glob
 import stat
+import pickle
 from time import time
 
 FILE_PATH = os.path.join(os.sep, "tmp", "CVANSIBLE_{SESSION_ID}")
@@ -66,7 +67,7 @@ class PreLogin:
                 continue
 
     @staticmethod
-    def create_session_file():
+    def write_session_file(commcell_obj, session_file_path):
         """
         Create a session file based on the UID of the user executing the script and set RWX permissions for owner.
 
@@ -81,7 +82,7 @@ class PreLogin:
 
         """
 
-        session_file_path = FILE_PATH.format(SESSION_ID=SESSION_ID)
-        fh = open(session_file_path, 'wb')
-        os.chmod(session_file_path, stat.S_IRWXU)  # SET READ, WRITE & EXECUTE PERMISSIONS FOR OWNER
-        return fh
+        if session_file_path:
+            with open(session_file_path, 'wb') as fh:
+                pickle.dump(commcell_obj, fh)
+            os.chmod(session_file_path, stat.S_IRWXU)  # SET READ, WRITE & EXECUTE PERMISSIONS FOR OWNER

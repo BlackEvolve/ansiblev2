@@ -95,6 +95,11 @@ def main():
     pre_login = PreLogin()
     pre_login.clean_up()
     module = CVAnsibleModule(argument_spec=module_args)
+    try:
+        pre_login.write_session_file(module.commcell, module.session_file_path)
+    except Exception as e:
+        result = {"changed": False, "msg": "Unable to save session file. Error: {0}".format(str(e))}
+        module.fail_json(**result)
 
     try:
         module.result['authtoken'] = module.commcell.auth_token
