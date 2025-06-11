@@ -101,7 +101,7 @@ def main():
         job = Job(commcell_obj,job_id)
         job.wait_for_completion(timeout=timeout)
 
-        if job.status != 'Pending' or 'Waiting' or 'Running' or 'Queued' :
+        if job.status not in ['Pending', 'Waiting', 'Running', 'Queued'] :
             module.result['failed'] = False
             module.result['changed'] = True
             module.exit_json(**module.result)
