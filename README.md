@@ -82,6 +82,10 @@ Commvault software assists organizations with data backup and recovery, cloud an
 
   * [commvault.ansible.file_servers.restore - to perform restore of a file server subclient.](#commvault.ansible.file_servers.restore)
 
+  * [commvault.ansible.database.backup - to perform backup of a database subclient.](#commvault.ansible.database.backup)
+
+  * [commvault.ansible.database.restore - to perform restore of a database subclient.](#commvault.ansibe.database.restore)
+
   * [commvault.ansible.job.kill - kills the job](#commvault.ansible.job.kill)
 
   * [commvault.ansible.job.resume - resumes the job](#commvault.ansible.job.resume)
@@ -89,6 +93,8 @@ Commvault software assists organizations with data backup and recovery, cloud an
   * [commvault.ansible.job.status - checks the status of the job](#commvault.ansible.job.status)
 
   * [commvault.ansible.job.suspend - suspends the job](#commvault.ansible.job.suspend)
+
+  * [commvault.ansible.job.wait_for_task_completion - wait the completion of the job](#commvault.ansible.job.wait_for_task_completion)
 
   * [commvault.ansible.plans.add - creates a plan](#commvault.ansible.plans.add)
 
@@ -1213,6 +1219,259 @@ job_id |  On success  |   str  |   Restore job ID  |   2017  |
 
 
 
+## commvault.ansible.database.backup <a name="commvault.ansible.database.backup"></a>
+To perform backup of a database subclient.
+
+
+#### Synopsis
+  commvault.ansible.database.backup can be used to perform database backup operation.
+ 
+
+
+
+
+
+
+
+
+
+
+
+#### Options
+| Parameter     | required    | default  | choices    | comments |
+| ------------- |-------------| ---------|----------- |--------- |
+webserver_hostname  |   no  |  | |  Hostname of the Web Server. | 
+commcell_username  |   no  |  | |  Commcell username | 
+commcell_password  |   no  |  | |  Commcell password | 
+client  |   yes  |  | |  The name of the Client. | 
+instance  |  yes  |  | |  The name of the Instance.  | 
+backupset  |   no  |  default backupset  | |  The name of the backupset. | 
+subclient  |   no  |  subclient named default.  | |  The name of the subclient. | 
+backup_level  |  no  |  Full  |  <ul> <li>Full</li> <li>Incremental</li> <li>Differential</li> <li>Synthetic_full</li> </ul>  |  Backup Level.  |
+agent_type  |  yes  |    | <ul> <li>sql server</li> <li>oracle</li><li>mysql</li><li>postgresql</li> </ul>  |  Agent Type.  | 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Returns
+| Name          | Returned    | Type     | Description | Sample |
+| ------------- |-------------| ---------|-----------  |--------|
+job_id |  On success  |   str  |   Backup job ID  |   2025  |
+
+
+
+
+#### Examples
+
+```
+- name: Run a Database Backup for a default subclient of a default backupset, session file will be used.
+  commvault.ansible.database.backup:
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql
+
+- name: Run a Database Backup for subclient 'user_subclient' of backupset 'user_backupset', session file will be used.
+  commvault.ansible.database.backup:
+    client: "client_name"
+    instance: "instance_name"
+    backupset: "user_backupset"
+    subclient: "user_subclient"
+    agent_type: "mysql
+
+- name: Run a Database Backup for default subclient of default backupset.
+  commvault.ansible.database.backup:
+    webserver_hostname: "webserver_hostname"
+    commcell_username: "user"
+    commcell_password: "password"
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql
+
+- name: Run a Database Backup for subclient 'user_subclient' of backupse ' user_backupset'.
+  commvault.ansible.database.backup:
+    webserver_hostname: "webserver_hostname"
+    commcell_username: "user"
+    commcell_password: "password"
+    client: "client_name"
+    instance: "instance_name"
+    backupset: "user_backupset"
+    subclient: "user_subclient"
+    agent_type: "mysql
+
+- name: run a Database Backup for subclient 'user_subclient' of backupset 'user_backupset' with agent_type of 'mysql'.
+  commvault.ansible.database.backup:
+    webserver_hostname: "webserver_hostname"
+    commecell_username: "user"
+    commcell_password: "password"
+    client: "client_name"
+    instance: "instance_name"
+    backupset: "user_backupset"
+    subclient: "user_subclient"
+    agent_type: "mysql"
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+
+## commvault.ansible.database.restore <a name ="commvault.ansibe.database.restore"></a>
+To perform of a database subclient.
+
+
+#### Synopsis
+  commvault.ansible.database.restore can be used to perform a database restore operation.
+
+
+
+
+
+
+
+
+
+
+
+
+#### Options
+| Parameter     | required    | default  | choices    | comments |
+| ------------- |-------------| ---------|----------- |--------- |
+webserver_hostname  |   no  |  | |  Hostname of the Web Server. | 
+commcell_username  |   no  |  | |  Commcell username | 
+commcell_password  |   no  |  | |  Commcell password | 
+client  |   yes  |  | |  The name of the client. | 
+instance  |  yes  |  | |  The name of the Instance.  | 
+backupset  |   no  |  default backupset  | |  The name of the backupset. | 
+subclient  |   no  |  subclient named 'default'.  | |  The name of the subclient. | 
+agent_type  |  yes  |    | <ul> <li>sql server</li> <li>oracle</li><li>mysql</li><li>postgresql</li> </ul>  |  Agent Type.  | 
+from_date  |  no  |  1979-01-26 08:00:16  | | The from date you want to restore database(format : YYYY-MM-DD HH:MM:SS ). | 
+to_date  |  no  |  | | The to date you want to restore database (format : YYYY-MM-DD HH:MM:SS ). | 
+content  |   no  |  | |  The database name(s) of the content that needs to be restored. | 
+in_place  |   no  |  True  | <ul> <li>true</li>  <li>false</li> </ul> |  Whether the content needs to be restored in place i.e. restored back to the source location. | 
+destination_client  |  no  |  | |  Destination client name in case the content needs to be restored to another location. | 
+destination_instance  |   no  |  | |  Destination instance name in case the content needs to be restored to another location. | 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Returns
+| Name          | Returned    | Type     | Description | Sample |
+| ------------- |-------------| ---------|-----------  |--------|
+job_id |  On success  |   str  |   Restore job ID  |   2025  |
+
+
+
+
+#### Examples
+
+```
+- name: Run a Database Restore for default subclient of default backupset with agent_type of 'mysql', session file will be used.
+  commvault.ansible.database.restore:
+   client: "client_name"
+   instance: "instance_name"
+
+- name: Run a Database Restore for subclient for subclient 'user_subclient' of backupset 'user_backupset' with agent_type of 'mysql', session file will be used.
+  commvault.ansible.database.restore:
+   client: "client_name"
+   instance: "instance_name"
+   backupset: "user_backupset"
+   subclient: "user_subclient"
+   agent_type: "mysql"
+   content: "/database_name"
+
+- name: Run a Database Restore for default subclient of default backupset with agent_type of 'mysql' and to date '2025/05/16 08:00:00', session file will be used.
+  commvault.ansible.database.restore
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql
+    to_date: "2025/05/16 08:00:00"
+
+- name: Run a Database Restore out of place for default subclient of default backupset with agent_type of 'mysql' and to date '2025/05/16 08:00:00', session file will be used.
+  commvault.ansible.database.restore
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql
+    in_place: false
+    destination_client: "destination_client_name"
+    destination_instance: "destination_instance_name"
+
+- name: Run a Database Restore out of place for default subclient of default backupset with agent_type of 'mysql', session file will be used.
+  commvault.ansible.database.restore
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql
+    to_date: "2025/05/16 08:00:00"
+    in_place: false
+    destination_client: "destination_client_name"
+    destination_instance: "destination_instance_name"
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+
 ## commvault.ansible.job.kill <a name="commvault.ansible.job.kill"></a>
 kills the Job
 
@@ -1565,6 +1824,86 @@ wait_for_job_to_suspend  |   no  |  False  | |  wait until job status is changed
 
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+## commvault.ansible.job.wait_for_task_completion <a name="commvault.ansible.job.wait_for_task_completion"></a>
+Wait the completion of a the Job
+
+
+#### Synopsis
+  This module wait the job completion
+  commvault.ansible.job.wait_for_task_completion module can be used in playbooks to wait the completion of the Job
+
+
+
+
+
+
+
+
+
+
+
+
+#### Options
+| Parameter     | required    | default  | choices    | comments |
+| ------------- |-------------| ---------|----------- |--------- |
+webserver_hostname  |   no  |  | |  Hostname of the Web Server. | 
+commcell_username  |   no  |  | |  Username | 
+commcell_password  |   no  |  | |  Password | 
+job_id  |   yes  |  | |  ID of the job | 
+timeout  |   yes  |  | |  Time for timeout | 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Examples
+
+```
+# Wait the completion of a particular Job
+
+- name: "Wait for task completion Job"
+  commvault.ansible.job.wait_for_task_completion:
+    job_id: 3
+    timeout: 300
+
+- name: "wait for task completion Job"
+  commvault.ansible.job.wait_for_task_completion:
+    webserver_hostname: "demo-CS-Name"
+    commcell_username: "user"
+    commcell_password: "CS-password"
+    job_id: 23
+    timeout: 600
+
+```
 
 
 

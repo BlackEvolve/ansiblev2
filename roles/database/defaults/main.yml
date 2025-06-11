@@ -1,0 +1,19 @@
+---
+# defaults file for commvault_ansible
+webserver_hostname: null
+commcell_username: null
+commcell_password: null
+auth_token: null
+var_client: null
+var_instance: null
+var_agent_type: null
+var_backupset: null
+var_subclient: null
+var_backup_level: null
+var_content: []
+var_from_date: null
+var_to_date: null
+var_in_place: True
+var_destination_client: null
+var_destination_instance: null
+var_commvault_timeout: null
