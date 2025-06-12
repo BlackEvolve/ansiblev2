@@ -237,32 +237,28 @@ def main ():
                 browse_content = instance.browse()
                 content = browse_content[0]
                 restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_instance=destination_instance,
-                                                         paths=content,
-                                                         destination_instance=destination_instance)
+                                                         destination_path=destination_instance,
+                                                         paths=content)
 
             case _ if not content  and to_date and in_place is False:
                 browse_content = instance.browse(from_time= from_date,
                                                     to_time = to_date)
                 content = browse_content[0]
                 restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_instance=destination_instance,
+                                                         destination_path=destination_instance,
                                                          paths=content,
-                                                         destination_instance=destination_instance,
                                                          from_time=from_time_convert ,
                                                          to_time=to_time_convert )
 
             case _ if content and not to_date and in_place is False:
                 restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_instance=destination_instance,
-                                                         paths=[content],
-                                                         destination_instance=destination_instance)
+                                                         destination_path=destination_instance,
+                                                         paths=[content])
 
             case _ if content  and to_date and in_place is False:
                 restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_instance=destination_instance,
+                                                         destination_path=destination_instance,
                                                          paths=[content],
-                                                         destination_instance=destination_instance,
                                                          from_time= from_time_convert,
                                                          to_time= to_time_convert )
 
