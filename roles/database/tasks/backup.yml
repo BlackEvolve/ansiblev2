@@ -1,0 +1,30 @@
+- name: Backup Client
+  commvault.ansible.database.backup:
+    client: "{{ var_client }}"
+    backupset: "{{ var_backupset }}"
+    subclient: "{{ var_subclient }}"
+    agent_type: "{{ var_agent_type }}"
+    instance: "{{ var_instance }}"
+    backup_level: "{{ var_backup_level }}"
+  register: cv_job 
+  tags:
+    - backup
+
+
+- name: wait for task completion Job for multi instance
+  commvault.ansible.job.wait_for_task_completion:
+    job_id: "{{  item  }}"
+    timeout: "{{ var_commvault_timeout }}"
+  loop: "{{ cv_job  | community.general.json_query('results[*].job_id') }}"
+  when: item | length >= 2
+  tags:
+    - backup
+
+
+- name: wait for task completion Job for an instance 
+  commvault.ansible.job.wait_for_task_completion:
+    job_id: "{{  cv_job | community.general.json_query('job.id')  }}"
+    timeout: "{{ var_commvault_timeout }}"
+  when: cv_job | community.general.json_query('results[*].job_id') is undefined
+  tags:
+    - backup

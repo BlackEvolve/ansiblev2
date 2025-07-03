@@ -1,0 +1,5 @@
+- name: Log out of the Commcell
+  commvault.ansible.logout:
+  tags:
+    - backup
+    - restore

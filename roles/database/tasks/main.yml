@@ -1,0 +1,24 @@
+---
+# tasks file for commvault_ansible
+- name: login to Commvault
+  ansible.builtin.import_tasks:
+    file: roles/commvault/tasks/login.yml
+
+
+- name: backup database 
+  ansible.builtin.import_tasks:
+    file: roles/commvault/tasks/backup.yml
+  tags: 
+    - backup
+
+
+- name: restore database
+  ansible.builtin.import_tasks:
+    file: roles/commvault/tasks/restore.yml
+  tags: 
+    - restore
+
+
+- name: logout to Commvault
+  ansible.builtin.import_tasks:
+    file: roles/commvault/tasks/logout.yml
