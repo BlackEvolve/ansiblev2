@@ -11,6 +11,7 @@ var_backupset: null
 var_subclient: null
 var_backup_level: null
 var_content: []
+var_staging: null
 var_from_date: null
 var_to_date: null
 var_in_place: True

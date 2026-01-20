@@ -106,6 +106,12 @@ options:
         type: str
         required: false
         default: None
+    staging:
+        description:
+            - Staging path for the  mysql database restore operation.
+        type: str
+        required: false
+        default: None
 
 '''
 
@@ -125,14 +131,14 @@ EXAMPLES = r'''
    content: "/database_name"
 
 - name: Run a Database Restore for default subclient of default backupset with agent_type of 'mysql' and to date '2025/05/16 08:00:00', session file will be used.
-  commvault.ansible.database.restore
+  commvault.ansible.database.restore:
     client: "client_name"
     instance: "instance_name"
     agent_type: "mysql
     to_date: "2025/05/16 08:00:00"
 
 - name: Run a Database Restore out of place for default subclient of default backupset with agent_type of 'mysql' and to date '2025/05/16 08:00:00', session file will be used.
-  commvault.ansible.database.restore
+  commvault.ansible.database.restore:
     client: "client_name"
     instance: "instance_name"
     agent_type: "mysql
@@ -141,7 +147,7 @@ EXAMPLES = r'''
     destination_instance: "destination_instance_name"
 
 - name: Run a Database Restore out of place for default subclient of default backupset with agent_type of 'mysql', session file will be used.
-  commvault.ansible.database.restore
+  commvault.ansible.database.restore:
     client: "client_name"
     instance: "instance_name"
     agent_type: "mysql
@@ -149,6 +155,15 @@ EXAMPLES = r'''
     in_place: false
     destination_client: "destination_client_name"
     destination_instance: "destination_instance_name"
+
+- name: Run a Database Restore with staging path for default subclient of default backupset, session file will be used.
+  commvault.ansible.database.restore:
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql"
+    content: "/database_name"
+    staging: "/path/to/staging
+
 
 '''
 
@@ -177,7 +192,8 @@ def main ():
         to_date = dict(type=str, required=False),
         destination_client = dict(type= str, required=False),
         destination_instance = dict(type=str, required= False),
-        in_place=dict(type=bool, required=False, default=True)
+        in_place=dict(type=bool, required=False, default=True),
+        staging=dict(type=str, required=False)
     )
 
     module = CVAnsibleModule(argument_spec=module_args)
@@ -185,7 +201,7 @@ def main ():
 
     try:
         client = module.commcell.clients.get(module.params.get('client'))
-        agent_type = module.params.get('agent_type', '')
+        agent_type = module.params.get('agent_type', '').lower()
         agent = client.agents.get(agent_type)
         instance = agent.instances.get(module.params.get('instance'))
         backupset = instance.backupsets.get(agent.backupsets.default_backup_set if not module.params.get('backupset') else module.params.get('backupset'))
@@ -195,6 +211,7 @@ def main ():
         to_date = module.params.get('to_date','')
         destination_client = module.params.get('destination_client','' )
         destination_instance = module.params.get('destination_instance','')
+        staging = module.params.get('staging','')
         in_place = module.params.get('in_place', True)
         from_time_convert = ''
         to_time_convert = ''
@@ -209,58 +226,125 @@ def main ():
             in_place = True
         else :
             in_place = False
+        
+        use_staging = staging and staging.strip() !=''
+        restore = str
 
-        match (content, to_date,in_place):
+        if not use_staging :
 
-            case _ if not content  and not to_date and in_place is True :
-                browse_content = instance.browse()
-                content = browse_content[0]
-                restore = subclient.restore_in_place(paths=content)
+            match (content, to_date,in_place):
 
-            case _ if not content  and to_date and in_place is True :
-                browse_content = instance.browse(from_time= from_date,
-                                                    to_time = to_date)
-                content = browse_content[0]
-                restore = subclient.restore_in_place(paths=content,
-                                                        from_time=from_time_convert ,
-                                                        to_time=to_time_convert )
+                case _ if not content  and not to_date and in_place is True :
+                    browse_content = instance.browse()
+                    content = browse_content[0]
+                    restore = subclient.restore_in_place(paths=content)
 
-            case _ if content and not to_date and in_place is True :
-                restore = subclient.restore_in_place(paths=[content])
+                case _ if not content  and to_date and in_place is True :
+                    browse_content = instance.browse(from_time= from_date,
+                                                        to_time = to_date)
+                    content = browse_content[0]
+                    restore = subclient.restore_in_place(paths=content,
+                                                            from_time=from_time_convert ,
+                                                            to_time=to_time_convert )
 
-            case _ if content  and to_date and in_place is True :
-                restore = subclient.restore_in_place(paths=[content],
-                                                        from_time= from_time_convert,
-                                                        to_time= to_time_convert )
+                case _ if content and not to_date and in_place is True :
+                    restore = subclient.restore_in_place(paths=[content])
 
-            case _ if  not content  and not to_date and in_place is False:
-                browse_content = instance.browse()
-                content = browse_content[0]
-                restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_path=destination_instance,
-                                                         paths=content)
+                case _ if content  and to_date and in_place is True :
+                    restore = subclient.restore_in_place(paths=[content],
+                                                            from_time= from_time_convert,
+                                                            to_time= to_time_convert )
 
-            case _ if not content  and to_date and in_place is False:
-                browse_content = instance.browse(from_time= from_date,
-                                                    to_time = to_date)
-                content = browse_content[0]
-                restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_path=destination_instance,
-                                                         paths=content,
-                                                         from_time=from_time_convert ,
-                                                         to_time=to_time_convert )
+                case _ if  not content  and not to_date and in_place is False:
+                    browse_content = instance.browse()
+                    content = browse_content[0]
+                    restore = subclient.restore_out_of_place(client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            paths=content)
 
-            case _ if content and not to_date and in_place is False:
-                restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_path=destination_instance,
-                                                         paths=[content])
+                case _ if not content  and to_date and in_place is False:
+                    browse_content = instance.browse(from_time= from_date,
+                                                        to_time = to_date)
+                    content = browse_content[0]
+                    restore = subclient.restore_out_of_place(client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            paths=content,
+                                                            from_time=from_time_convert ,
+                                                            to_time=to_time_convert )
 
-            case _ if content  and to_date and in_place is False:
-                restore = subclient.restore_out_of_place(client=destination_client,
-                                                         destination_path=destination_instance,
-                                                         paths=[content],
-                                                         from_time= from_time_convert,
-                                                         to_time= to_time_convert )
+                case _ if content and not to_date and in_place is False:
+                    restore = subclient.restore_out_of_place(client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            paths=[content])
+
+                case _ if content  and to_date and in_place is False:
+                    restore = subclient.restore_out_of_place(client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            paths=[content],
+                                                            from_time= from_time_convert,
+                                                            to_time= to_time_convert )
+        else :
+            match (content, to_date,in_place, agent_type):
+
+                case _ if not content  and not to_date and in_place is True and agent_type == 'mysql':
+                    browse_content = instance.browse()
+                    content = browse_content[0]
+                    restore = instance.restore_in_place(
+                        paths=content,
+                        staging= staging)
+
+                case _ if not content  and to_date and in_place is True and agent_type == 'mysql' :
+                    browse_content = instance.browse(from_time= from_date,
+                                                        to_time = to_date)
+                    content = browse_content[0]
+                    restore = instance.restore_in_place(paths=content,
+                                                            staging=staging,
+                                                            from_time=from_time_convert ,
+                                                            to_time=to_time_convert )
+
+                case _ if content and not to_date and in_place is True and agent_type == 'mysql' :
+                    restore = instance.restore_in_place(paths=[content],
+                                                        staging=staging)
+
+                case _ if content  and to_date and in_place is True and agent_type == 'mysql' :
+                    restore = instance.restore_in_place(paths=[content],
+                                                            staging=staging,
+                                                            from_time= from_time_convert,
+                                                            to_time= to_time_convert )
+
+                case _ if  not content  and not to_date and in_place is False and agent_type == 'mysql' :
+                    browse_content = instance.browse()
+                    content = browse_content[0]
+                    restore = instance.restore_out_of_place(client=destination_client,
+                                                            staging=staging,
+                                                            paths=content,
+                                                            destination_path=destination_instance,)
+
+                case _ if not content  and to_date and in_place is False and agent_type == 'mysql' :
+                    browse_content = instance.browse(from_time= from_date,
+                                                        to_time = to_date)
+                    content = browse_content[0]
+                    restore = instance.restore_out_of_place(paths=content,
+                                                            staging=staging,
+                                                            client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            from_time=from_time_convert ,
+                                                            to_time=to_time_convert )
+
+                case _ if content and not to_date and in_place is False and agent_type == 'mysql' :
+                    restore = instance.restore_out_of_place(paths=[content],
+                                                             staging=staging,
+                                                             client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            )
+
+                case _ if content  and to_date and in_place is False and agent_type == 'mysql' :
+                    restore = instance.restore_out_of_place(paths=[content],
+                                                            staging=staging,
+                                                            client=destination_client,
+                                                            destination_path=destination_instance,
+                                                            from_time= from_time_convert,
+                                                            to_time= to_time_convert )
 
         module.result['job_id'] = str(restore.job_id)
         module.result['changed'] = True

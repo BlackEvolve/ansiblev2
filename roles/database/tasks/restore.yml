@@ -6,6 +6,7 @@
     agent_type: "{{ var_agent_type }}"
     instance: "{{ var_instance }}"
     content: "{{var_content }}"
+    staging: "{{var_staging}}"
     from_date: "{{ var_from_date }}"
     to_date: "{{ var_to_date }}"
     destination_client: "{{ var_destination_client }}"

@@ -1379,7 +1379,8 @@ to_date  |  no  |  | | The to date you want to restore database (format : YYYY-M
 content  |   no  |  | |  The database name(s) of the content that needs to be restored. | 
 in_place  |   no  |  True  | <ul> <li>true</li>  <li>false</li> </ul> |  Whether the content needs to be restored in place i.e. restored back to the source location. | 
 destination_client  |  no  |  | |  Destination client name in case the content needs to be restored to another location. | 
-destination_instance  |   no  |  | |  Destination instance name in case the content needs to be restored to another location. | 
+destination_instance  |   no  |  | |  Destination instance name in case the content needs to be restored to another location. |
+staging  |  no  |    |  | The staging path  |
 
 
 
@@ -1444,6 +1445,14 @@ job_id |  On success  |   str  |   Restore job ID  |   2025  |
     in_place: false
     destination_client: "destination_client_name"
     destination_instance: "destination_instance_name"
+
+- name: Run a Database Restore with staging path for default subclient of default backupset, session file will be used.
+  commvault.ansible.database.restore:
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "mysql"
+    content: "/database_name"
+    staging: "/path/to/staging
 
 ```
 
