@@ -12,6 +12,7 @@
     destination_client: "{{ var_destination_client }}"
     destination_instance: "{{ var_destination_instance }}"
     in_place: "{{ var_in_place }}"
+    restore_path: "{{ var_restore_path}}"
   register: cv_job
   tags:
     - restore

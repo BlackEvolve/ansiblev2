@@ -55,7 +55,7 @@ options:
         type: str
         required: true
         default: None
-        choices: ["sql server","oracle","mysql", "postgresql"]
+        choices: ["sqlserver","oracle","mysql", "postgresql"]
     backupset:
         description:
             - The name of the backupset.
@@ -112,6 +112,12 @@ options:
         type: str
         required: false
         default: None
+    restore_path:
+        description:
+            -  List of dicts for restore paths of database files.
+        type: list
+        required: false
+        default: None
 
 '''
 
@@ -162,9 +168,19 @@ EXAMPLES = r'''
     instance: "instance_name"
     agent_type: "mysql"
     content: "/database_name"
-    staging: "/path/to/staging
+    staging: "/path/to/staging"
 
-
+- name: Run a Database Restore out of place for default subclient of default backupset with log path and data path specify, session file will be used.
+  commvault.ansible.database.restore:
+    client: "client_name"
+    instance: "instance_name"
+    agent_type: "sqlserver"
+    content: "/database_name"
+    destination_instance: "destination_instance"
+    restore_path:
+      - "|original_database_name|#12!restore_database_name|#12!logical_file_name|#12!restore_file_path_with_file_names|#12!original_file_path_with_file_names"
+      - "|DB1|#12!DB1_rename|#12!DB1|#12!E:RestoreLocationDB1.mdf|#12!C:Program FilesMicrosoft SQL ServerMSSQL10_50.MSSQLSERVERMSSQLDATADB1.mdf"
+      - "|DB1|#12!DB1_rename|#12!DB1_log|#12!E:RestoreLocationDB1_log.ldf|#12!C:Program FilesMicrosoft SQL ServerMSSQL10_50.MSSQLSERVERMSSQLDATADB1_log.ldf"
 '''
 
 RETURN = r'''
@@ -192,8 +208,9 @@ def main ():
         to_date = dict(type=str, required=False),
         destination_client = dict(type= str, required=False),
         destination_instance = dict(type=str, required= False),
-        in_place=dict(type=bool, required=False, default=True),
-        staging=dict(type=str, required=False)
+        in_place = dict(type=bool, required=False, default=True),
+        staging = dict(type=str, required=False),
+        restore_path = dict(type=list, required=False)
     )
 
     module = CVAnsibleModule(argument_spec=module_args)
@@ -212,6 +229,7 @@ def main ():
         destination_client = module.params.get('destination_client','' )
         destination_instance = module.params.get('destination_instance','')
         staging = module.params.get('staging','')
+        restore_path = module.params.get('restore_path',[])
         in_place = module.params.get('in_place', True)
         from_time_convert = ''
         to_time_convert = ''
@@ -226,13 +244,13 @@ def main ():
             in_place = True
         else :
             in_place = False
-        
+
         use_staging = staging and staging.strip() !=''
         restore = str
 
         if not use_staging :
 
-            match (content, to_date,in_place):
+            match (content, to_date,in_place, agent_type):
 
                 case _ if not content  and not to_date and in_place is True :
                     browse_content = instance.browse()
@@ -254,6 +272,33 @@ def main ():
                     restore = subclient.restore_in_place(paths=[content],
                                                             from_time= from_time_convert,
                                                             to_time= to_time_convert )
+
+                case _ if  not content  and not to_date and in_place is False and agent_type == 'sqlserver':
+                    browse_content = instance.browse()
+                    content = browse_content[0]
+                    restore = instance.restore(content_to_restore=content,
+                                                destination_instance=destination_instance,
+                                                restore_path=restore_path)
+
+                case _ if not content  and to_date and in_place is False and agent_type == 'sqlserver':
+                    browse_content = instance.browse(from_time= from_date,
+                                                        to_time = to_date)
+                    content = browse_content[0]
+                    restore = instance.restore(content_to_restore=content,
+                                                destination_instance=destination_instance,
+                                                to_time=to_time_convert,
+                                                restore_path=restore_path)
+
+                case _ if content and not to_date and in_place is False and agent_type == 'sqlserver':
+                    restore = instance.restore(content_to_restore=[content],
+                                                destination_instance=destination_instance,
+                                                restore_path=restore_path)
+
+                case _ if content  and to_date and in_place is False and agent_type == 'sqlserver':
+                    restore = instance.restore(content_to_restore=[content],
+                                                destination_instance=destination_instance,
+                                                to_time= to_time_convert,
+                                                restore_path=restore_path)
 
                 case _ if  not content  and not to_date and in_place is False:
                     browse_content = instance.browse()
