@@ -55,7 +55,7 @@ options:
         type: str
         required: true
         default: None
-        choices: ["sqlserver","oracle","mysql", "postgresql"]
+        choices: ["sql server","oracle","mysql", "postgresql"]
     backupset:
         description:
             - The name of the backupset.
@@ -174,7 +174,7 @@ EXAMPLES = r'''
   commvault.ansible.database.restore:
     client: "client_name"
     instance: "instance_name"
-    agent_type: "sqlserver"
+    agent_type: "sql server"
     content: "/database_name"
     destination_instance: "destination_instance"
     restore_path:
@@ -273,14 +273,14 @@ def main ():
                                                             from_time= from_time_convert,
                                                             to_time= to_time_convert )
 
-                case _ if  not content  and not to_date and in_place is False and agent_type == 'sqlserver':
+                case _ if  not content  and not to_date and in_place is False and agent_type == 'sql server':
                     browse_content = instance.browse()
                     content = browse_content[0]
                     restore = instance.restore(content_to_restore=content,
                                                 destination_instance=destination_instance,
                                                 restore_path=restore_path)
 
-                case _ if not content  and to_date and in_place is False and agent_type == 'sqlserver':
+                case _ if not content  and to_date and in_place is False and agent_type == 'sql server':
                     browse_content = instance.browse(from_time= from_date,
                                                         to_time = to_date)
                     content = browse_content[0]
@@ -289,12 +289,12 @@ def main ():
                                                 to_time=to_time_convert,
                                                 restore_path=restore_path)
 
-                case _ if content and not to_date and in_place is False and agent_type == 'sqlserver':
+                case _ if content and not to_date and in_place is False and agent_type == 'sql server':
                     restore = instance.restore(content_to_restore=[content],
                                                 destination_instance=destination_instance,
                                                 restore_path=restore_path)
 
-                case _ if content  and to_date and in_place is False and agent_type == 'sqlserver':
+                case _ if content  and to_date and in_place is False and agent_type == 'sql server':
                     restore = instance.restore(content_to_restore=[content],
                                                 destination_instance=destination_instance,
                                                 to_time= to_time_convert,
