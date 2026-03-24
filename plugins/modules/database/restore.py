@@ -246,7 +246,7 @@ def main ():
             in_place = False
 
         use_staging = staging and staging.strip() !=''
-        restore = str
+        restore = ''
 
         if not use_staging :
 
